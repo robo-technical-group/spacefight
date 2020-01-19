@@ -9,6 +9,15 @@ enum ActionKind {
     Idle,
     Jumping
 }
+/**
+ * Spacefight!
+ * 
+ * Built on
+ * 
+ * MakeCode Arcade blocks template v. 2.1.1
+ * 
+ * Template last update: 19 Jan 2020 ak
+ */
 sprites.onOverlap(SpriteKindLegacy.Player, SpriteKindLegacy.Enemy, function (sprite, otherSprite) {
     if (sprite == player1) {
         destroyPlayer1()
