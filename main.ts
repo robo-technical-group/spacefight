@@ -18,6 +18,21 @@ enum ActionKind {
  * 
  * Template last update: 19 Jan 2020 ak
  */
+/**
+ * Game update routines
+ */
+/**
+ * Controller routines
+ */
+/**
+ * Sprite overlap routines
+ */
+/**
+ * Reset functions
+ */
+/**
+ * Splash screen and other visuals
+ */
 sprites.onOverlap(SpriteKindLegacy.Player, SpriteKindLegacy.Enemy, function (sprite, otherSprite) {
     if (sprite == player1) {
         destroyPlayer1()
@@ -49,15 +64,6 @@ function rotatePlayer (playerSprite: Sprite, direction: number) {
     if (attractMode == 0) {
         transformSprites.changeRotation(playerSprite, direction * ROTATION_CHANGE)
     }
-}
-function writeInstructions (instruction: string, y: number) {
-    drawStrings.writeCenter(
-    instruction,
-    splashBase,
-    y,
-    7,
-    currFont
-    )
 }
 controller.right.onEvent(ControllerButtonEvent.Repeated, function () {
     rotatePlayer(player1, 1)
@@ -245,9 +251,8 @@ function createStar () {
     star.setVelocity(0, 0)
 }
 function startGame () {
-    player1.destroy()
-    player2.destroy()
     attractMode = 0
+    mySplashScreen.release()
     initialize()
     resetPlayer1()
     resetPlayer2()
@@ -272,16 +277,6 @@ sprites.onOverlap(SpriteKindLegacy.Player, SpriteKindLegacy.Player, function (sp
     destroyPlayer1()
     destroyPlayer2()
 })
-function writeArrayInstructions (x: number) {
-    drawStrings.writeMultiple(
-    controlsDesc,
-    splashBase,
-    x,
-    textY,
-    7,
-    currFont
-    )
-}
 function updateHud () {
     hudX = 2
     hudY = 10
@@ -295,21 +290,6 @@ function updateHud () {
     hudX = scene.screenWidth() - (HUD_BLOCK_SIZE * player2Fuel + 2)
     background.fillRect(hudX, hudY, HUD_BLOCK_SIZE * player2Fuel, HUD_BLOCK_SIZE, 7)
     scene.setBackgroundImage(background)
-}
-function createSplashBase () {
-    splashBase = image.create(scene.screenWidth(), scene.screenHeight())
-    currFont = drawStrings.createFontInfo(FontName.Font5, 2)
-    writeInstructions("SPACEFIGHT!", 2)
-    headlinesY = drawStrings.height(currFont) + 4
-    currFont = drawStrings.createFontInfo(FontName.Font5)
-    writeInstructions("Press any button to start", scene.screenHeight() - (drawStrings.height(currFont) + 2))
-    controlsDesc = ["Player 1", "A/D", "W", "Q", "E"]
-    textY = 72
-    writeArrayInstructions(2)
-    controlsDesc = ["Action", "Rotate", "Thruster", "Fire", "Warp"]
-    writeArrayInstructions(52)
-    controlsDesc = ["Player 2", "J/L", "I", "U", "O"]
-    writeArrayInstructions(104)
 }
 function initialize () {
     createStarfield()
@@ -348,46 +328,6 @@ function startAttractMode () {
     attractMode = 1
     createSplashScreen()
 }
-function createSplashPlayers () {
-    player1 = sprites.create(img`
-. . . . . . . 7 . . . . . . . . 
-. . . . . . . 7 . . . . . . . . 
-. . . . . . . 7 . . . . . . . . 
-. . . . . . . 7 . . . . . . . . 
-. . . . . . 7 . 7 . . . . . . . 
-. . . . . . 7 . 7 . . . . . . . 
-. . . . . . 7 . 7 . . . . . . . 
-. . . . . 7 . . . 7 . . . . . . 
-. . . . . 7 . . . 7 . . . . . . 
-. . . . . 7 . . . 7 . . . . . . 
-. . . . . 7 . . . 7 . . . . . . 
-. . . . 7 . 7 . 7 . 7 . . . . . 
-. . . 7 . 7 7 . 7 7 . 7 . . . . 
-. . . 7 . 7 7 . 7 7 . 7 . . . . 
-. . 7 . . . 7 . 7 . . . 7 . . . 
-. . 7 7 7 7 . 7 . 7 7 7 7 . . . 
-`, SpriteKindLegacy.Player)
-    player1.setPosition(24, 56)
-    player2 = sprites.create(img`
-. . . . . . . 7 . . . . . . . . 
-. . . . . . . 7 . . . . . . . . 
-. . . . . . 7 . 7 . . . . . . . 
-. . . . . . 7 . 7 . . . . . . . 
-. . . . . . 7 7 7 . . . . . . . 
-. . . . . . 7 . 7 . . . . . . . 
-. . . . . . 7 . 7 . . . . . . . 
-. . . . . . 7 7 7 . . . . . . . 
-. . . . . . 7 . 7 . . . . . . . 
-. . . . . . 7 . 7 . . . . . . . 
-. . . . . . 7 7 7 . . . . . . . 
-. . . . . 7 7 . 7 7 . . . . . . 
-. . . . 7 . 7 . 7 . 7 . . . . . 
-. . . . 7 . 7 7 7 . 7 . . . . . 
-. . . . 7 . 7 . 7 . 7 . . . . . 
-. . . . 7 7 7 7 7 7 7 . . . . . 
-`, SpriteKindLegacy.Player)
-    player2.setPosition(128, 56)
-}
 controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
     if (attractMode == 0 && player1Torpedoes > 0) {
         player1Torpedoes += -1
@@ -404,13 +344,58 @@ controller.player2.onButtonEvent(ControllerButton.Up, ControllerButtonEvent.Pres
     playerTwoPressUp()
 })
 function createSplashScreen () {
-    createSplashBase()
-    HEADLINES = [["Inspired by", "Spacewar!"], ["Spacewar! was", "developed in 1962"], ["Programmed by", "Steve Russell"], ["Collaborator", "Martin Graetz"], ["Collaborator", "Wayne Wiitanen"], ["Collaborator", "Bob Saunders"], ["Collaborator", "Steve Piner"], ["Programmed in", "MakeCode Arcade"], ["by", "Alex K."], ["Collaborator", "Joey W."]]
-    currSplashScreen = 0
-    SPLASH_ROTATE_INTERVAL = 5000
-    nextSplashRotate = game.runtime() + nextSplashRotate
-    scene.setBackgroundImage(splashScreens[0])
-    createSplashPlayers()
+    mySplashScreen = infoScreens.createSplashScreen()
+    mySplashScreen.setTitles(["SPACEFIGHT!"])
+    mySplashScreen.addHeadlines(["Inspired by", "Spacewar!"])
+    mySplashScreen.addHeadlines(["Spacewar! was", "developed in 1962"])
+    mySplashScreen.addHeadlines(["Programmed by", "Steve Russell"])
+    mySplashScreen.addHeadlines(["Collaborator", "Martin Graetz"])
+    mySplashScreen.addHeadlines(["Collaborator", "Wayne Wiitanen"])
+    mySplashScreen.addHeadlines(["Collaborator", "Bob Saunders"])
+    mySplashScreen.addHeadlines(["Collaborator", "Steve Piner"])
+    mySplashScreen.addHeadlines(["Programmed in", "MakeCode Arcade"])
+    mySplashScreen.addHeadlines(["by", "Alex K."])
+    mySplashScreen.addHeadlines(["Collaborator", "Joey W."])
+    mySplashScreen.addInstructionsList(["Player 1", "A/D", "W", "Q", "E"])
+    mySplashScreen.addInstructionsList(["Action", "Rotate", "Thruster", "Fire", "Warp"])
+    mySplashScreen.addInstructionsList(["Player 2", "J/L", "I", "U", "O"])
+    mySplashScreen.addStaticSpriteImage(img`
+. . . . . . . 7 . . . . . . . . 
+. . . . . . . 7 . . . . . . . . 
+. . . . . . . 7 . . . . . . . . 
+. . . . . . . 7 . . . . . . . . 
+. . . . . . 7 . 7 . . . . . . . 
+. . . . . . 7 . 7 . . . . . . . 
+. . . . . . 7 . 7 . . . . . . . 
+. . . . . 7 . . . 7 . . . . . . 
+. . . . . 7 . . . 7 . . . . . . 
+. . . . . 7 . . . 7 . . . . . . 
+. . . . . 7 . . . 7 . . . . . . 
+. . . . 7 . 7 . 7 . 7 . . . . . 
+. . . 7 . 7 7 . 7 7 . 7 . . . . 
+. . . 7 . 7 7 . 7 7 . 7 . . . . 
+. . 7 . . . 7 . 7 . . . 7 . . . 
+. . 7 7 7 7 . 7 . 7 7 7 7 . . . 
+`, 24, 64)
+    mySplashScreen.addStaticSpriteImage(img`
+. . . . . . . 7 . . . . . . . . 
+. . . . . . . 7 . . . . . . . . 
+. . . . . . 7 . 7 . . . . . . . 
+. . . . . . 7 . 7 . . . . . . . 
+. . . . . . 7 7 7 . . . . . . . 
+. . . . . . 7 . 7 . . . . . . . 
+. . . . . . 7 . 7 . . . . . . . 
+. . . . . . 7 7 7 . . . . . . . 
+. . . . . . 7 . 7 . . . . . . . 
+. . . . . . 7 . 7 . . . . . . . 
+. . . . . . 7 7 7 . . . . . . . 
+. . . . . 7 7 . 7 7 . . . . . . 
+. . . . 7 . 7 . 7 . 7 . . . . . 
+. . . . 7 . 7 7 7 . 7 . . . . . 
+. . . . 7 . 7 . 7 . 7 . . . . . 
+. . . . 7 7 7 7 7 7 7 . . . . . 
+`, 128, 64)
+    mySplashScreen.build()
 }
 controller.right.onEvent(ControllerButtonEvent.Pressed, function () {
     rotatePlayer(player1, 1)
@@ -591,21 +576,6 @@ function playerOnePressUp () {
 controller.left.onEvent(ControllerButtonEvent.Repeated, function () {
     rotatePlayer(player1, -1)
 })
-function rotateSplashScreen () {
-    currSplashScreen += 1
-    nextSplashRotate = game.runtime() + SPLASH_ROTATE_INTERVAL
-    currFont = drawStrings.createFontInfo(FontName.Font5)
-    splashScreen = splashBase.clone()
-    drawStrings.writeMultipleCenter(
-    HEADLINES[currSplashScreen % HEADLINES.length],
-    splashScreen,
-    headlinesY,
-    14,
-    currFont
-    )
-    splashScreens.push(splashScreen)
-    scene.setBackgroundImage(splashScreen)
-}
 function createStarfield () {
     starfield = image.create(scene.screenWidth(), scene.screenHeight())
     numStars = 40
@@ -615,7 +585,6 @@ function createStarfield () {
     scene.setBackgroundImage(starfield)
 }
 let numStars = 0
-let splashScreen: Image = null
 let projectile: Sprite = null
 let torpedoDy = 0
 let torpedoDx = 0
@@ -625,11 +594,6 @@ let torpedoDirRads = 0
 let torpedoDir = 0
 let player1SpawnTime = 0
 let player1Destroyed = 0
-let splashScreens: Image[] = []
-let nextSplashRotate = 0
-let SPLASH_ROTATE_INTERVAL = 0
-let currSplashScreen = 0
-let HEADLINES: string[][] = []
 let player2Warped = 0
 let player1SpawnDirection = 0
 let MAX_FUEL = 0
@@ -639,7 +603,6 @@ let MAX_SCORE = 0
 let GAME_TIME = 0
 let PLAYER_START_OFFSET_Y = 0
 let PLAYER_START_OFFSET_X = 0
-let headlinesY = 0
 let player2Fuel = 0
 let player1Fuel = 0
 let player2Torpedoes = 0
@@ -649,14 +612,13 @@ let starfield: Image = null
 let background: Image = null
 let hudY = 0
 let hudX = 0
-let textY = 0
-let controlsDesc: string[] = []
 let player1Warped = 0
 let PLAYER_SPAWN_DELAY = 0
 let player2SpawnTime = 0
 let player2Destroyed = 0
-let player2SpawnDirection = 0
 let player2: Sprite = null
+let player2SpawnDirection = 0
+let mySplashScreen: SplashScreens = null
 let starAnim: animation.Animation = null
 let thrustY = 0
 let THRUSTER_VELOCITY = 0
@@ -664,8 +626,6 @@ let thrustX = 0
 let thrustDirRads = 0
 let thrustPlayer: Sprite = null
 let thrustDir = 0
-let currFont: FontInfo = null
-let splashBase: Image = null
 let ROTATION_CHANGE = 0
 let attractMode = 0
 let GRAVITY = 0
@@ -681,8 +641,8 @@ game.onUpdate(function () {
     if (attractMode == 0) {
         updatePlayers()
     } else {
-        if (game.runtime() >= nextSplashRotate) {
-            rotateSplashScreen()
+        if (game.runtime() >= mySplashScreen.nextTime) {
+            mySplashScreen.rotate()
         }
     }
 })
