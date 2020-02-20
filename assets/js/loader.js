@@ -23,8 +23,13 @@ function makeCodeRun(options) {
                 meta = JSON.parse(metasrc);
             })
             var vel = document.getElementById("version");
-            if (meta.version && vel)
-                vel.innerText = "v" + meta.version;
+            if (meta.version && meta.repo && vel) {
+                var ap = document.createElement("a");
+                ap.download = "arcade.uf2";
+                ap.href = "https://github.com/" + meta.repo + "/releases/download/v" + meta.version + "/arcade.uf2";
+                ap.innerText = "v" + meta.version;
+                vel.appendChild(ap);
+            }
             // load simulator with correct version
             document.getElementById("simframe")
                 .setAttribute("src", meta.simUrl);
